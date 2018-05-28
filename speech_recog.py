@@ -14,8 +14,7 @@ from google.cloud.speech import enums
 from google.cloud.speech import types
 
 # enviorment variable
-os.environ["GOOGLE_APPLICATION_CREDENTIALS"]="My First Project-cadf64234338.json"
-
+os.environ["GOOGLE_APPLICATION_CREDENTIALS"]="google_cert.json"
 
 # decode base64 -> webm
 def base2webm(base64_, file_name='decode.webm'):
