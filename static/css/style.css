@@ -1,0 +1,55 @@
+h1{
+  color: #333;
+}
+
+.textarea{
+  height: 10rem;
+  border: 1px solid crimson;
+  overflow-y: scroll;
+  white-space: pre-wrap;
+}
+
+.short{
+  height: 3rem;
+  border: 1px solid blueviolet;  
+}
+
+label{
+  vertical-align: top;
+  font-weight: bold;
+  color: #444;
+}
+
+iframe{
+  width: 100%;
+  height: 50%;
+}
+
+.keywords{
+  /* color: red; */
+  font-weight: bold;
+}
+
+#url, #query{
+  width: 80%;
+}
+
+#doc{
+  width: 80%;
+  height: 3rem;
+  overflow-y: scroll;
+}
+
+#loader{
+  position: fixed;
+  top: 20%;
+  left: 40%;
+  width: 20%;
+  height: 20%;
+  z-index: 999;
+  /* ../ 없으면 css/img/loader.gif로 들어가네?? */
+  background-image: url("../img/loader.gif");
+  background-size: contain;
+  background-repeat: no-repeat;
+  background-position: center;
+}
