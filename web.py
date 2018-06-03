@@ -7,6 +7,8 @@ from flask_cors import CORS, cross_origin # http://flask-cors.readthedocs.io/en/
 # from flaskext.mysql import MySQL
 
 from speech_recog import *
+from speech_syn import *
+from musicDownlader import *
 
 from myTextRank import *
 import asyncio
@@ -52,6 +54,51 @@ def stt():
     결국 리턴은 오디오 파일이나 base64 
     '''
     return json.dumps(texts)
+
+@app.route("/api/music", methods=['POST'])
+def music():
+    if type(request.data) is bytes: body = json.loads(request.data.decode())
+    else: body = json.loads(request.data)
+    # print(body) # base64 code 보여줌
+    music = body['music']
+    res = {'findIt': 0, "music": ''}
+    music_file = None
+
+    vids = get_youtube_search(music)
+    print(vids)
+    if len(vids)>0:
+        # music_file = download_audio(vids[0])
+        for v in vids:
+            if compare_duration(v):
+                music_file = download_audio(v)
+                break
+        # 음악 길이 적당한거 못찾았을 때  
+        if not music_file:
+            res['music'] = "음악의 길이가 너무 길어요."
+            print(res)
+            return json.dumps(res)
+        # 찾았을 때
+        res['findIt'] = 1
+        res['music'] = music_file
+        print(res)
+        return json.dumps(res)
+    else: # 제목 서칭이 안될 때
+        res['music'] = '찾는 음악이 없습니다.'
+        return json.dumps(res)
+
+@app.route("/api/text2speech", methods=['POST'])
+def synthesis():
+    if type(request.data) is bytes: body = json.loads(request.data.decode())
+    else: body = json.loads(request.data)
+    # print(body) # base64 code 보여줌
+    text = body['text']
+    res = {'success': 1, "path": 'static/audio/res.mp3'}
+    res['success'] = text2speech(text)
+    return json.dumps(res)
+
+
+    
+
 
 # ---------------------------------for textRank
 

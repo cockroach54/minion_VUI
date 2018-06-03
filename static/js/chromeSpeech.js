@@ -1,3 +1,4 @@
+// 이건 크롬에 내장된건데 지금은 안씀
 
 var recognition;
 try{

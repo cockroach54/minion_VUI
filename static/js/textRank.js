@@ -21,6 +21,7 @@ summ_news.addEventListener('click', function () {
     
     // keywords css 입히기
     for (k of news['keywords']) findKeyword(k);
+    controller.say("이 뉴스의 키워드는 '" + news['keywords'].join(', ') + "' 입니다."); // 미니언 토스트
   });
 });
 // enter keyup binding
@@ -42,6 +43,7 @@ query_news.addEventListener('click', function(){
     console.log(res);
     // show top3 
     document.getElementById('news_answers').innerHTML = res['answers'].slice(0,3).join('\n\n');
+    controller.say(res['answers'][0][0]); // 미니언 토스트
   });
 });
 // enter key up binding

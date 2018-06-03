@@ -21,6 +21,11 @@ var constraints = window.constraints = {
   video: false
 };
 
+// audio, controller 연동
+audio.addEventListener('pause', () => controller.paused = true);
+audio.addEventListener('ended', () => controller.paused = true);
+audio.addEventListener('play', () => controller.paused = false);
+
 function handleSuccess(stream) {
   var audioTracks = stream.getAudioTracks();
   console.log('Got stream with constraints:', constraints);
@@ -167,5 +172,110 @@ function reqSpeech2text(base64){
             }
         }
     };
+  });
+}
+
+function reqMusic(query){
+  var httpRequest;
+  if(window.XMLHttpRequest) httpRequest = new XMLHttpRequest();
+  else if(window.ActiveXObject) httpRequest = new ActiveXObject("Microsoft.XMLHTTP");
+  var url= window.location.origin;
+  url += '/api/music';
+  console.log(url);
+  var headers ={
+    // 'Accept': 'application/json'
+  };
+  var payloads = {
+    'music': query,
+  };
+
+  return new Promise((resolve, reject)=>{
+    httpRequest.open('POST', url, true);
+    for (key in headers){
+      httpRequest.setRequestHeader(key, headers[key]);            
+    }
+    httpRequest.send(JSON.stringify(payloads));
+    
+    httpRequest.onreadystatechange = function(){
+        if(httpRequest.readyState==4){
+            if(httpRequest.status==200){ //이건 클라이언트꺼 서버것 아님
+                var res = httpRequest.responseText;
+                res = JSON.parse(res);
+                resolve(res);
+            }
+            else{
+              console.error('server has errors.');
+              reject();
+            }
+        }
+    };
+  });
+}
+
+function reqText2speech(text){
+  var httpRequest;
+  if(window.XMLHttpRequest) httpRequest = new XMLHttpRequest();
+  else if(window.ActiveXObject) httpRequest = new ActiveXObject("Microsoft.XMLHTTP");
+  var url= window.location.origin;
+  url += '/api/text2speech';
+  console.log(url);
+  var headers ={
+    // 'Accept': 'application/json'
+  };
+  var payloads = {
+    'text': text,
+  };
+
+  return new Promise((resolve, reject)=>{
+    httpRequest.open('POST', url, true);
+    for (key in headers){
+      httpRequest.setRequestHeader(key, headers[key]);            
+    }
+    httpRequest.send(JSON.stringify(payloads));
+    
+    httpRequest.onreadystatechange = function(){
+        if(httpRequest.readyState==4){
+            if(httpRequest.status==200){ //이건 클라이언트꺼 서버것 아님
+                var res = httpRequest.responseText;
+                res = JSON.parse(res);
+                resolve(res);
+            }
+            else{
+              console.error('server has errors.');
+              reject();
+            }
+        }
+    };
+  });
+}
+
+
+
+function tts(text){
+  var payloads = {
+    'speaker': 'mijin',
+    'speed': 0,
+    'text': text,
+  };
+
+  $.ajax({
+             
+    type : "POST",
+    url : 'https://naveropenapi.apigw.ntruss.com/voice/v1/tts',
+    dataType : "json",
+    data: JSON.stringify(payloads),
+    // jsonpCallback: "myCallback",
+    headers: {
+      'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8',
+      'X-NCP-APIGW-API-KEY-ID': 'kwjiwaqr0b',
+      'X-NCP-APIGW-API-KEY': 'PU5Ewecvdnch7gUHg6x38zILYXkjvPssCGOVwJuz',
+    },
+    error : function(){
+      console.log('fail');
+    },
+    success : function(data){
+      console.log('success', data);
+    }
+     
   });
 }

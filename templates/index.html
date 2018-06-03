@@ -19,49 +19,60 @@
   <link href="//fonts.googleapis.com/css?family=Roboto:300,400,500,700" rel="stylesheet" type="text/css">
   <link rel="stylesheet" href="css/style.css">
 
+  <!-- for material css -->
+  <!-- Compiled and minified CSS -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-beta/css/materialize.min.css">
+  <!-- Compiled and minified JavaScript -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/materialize/1.0.0-beta/js/materialize.min.js"></script>
+
 </head>
 
 <body>
 
-  <div id="container">
-    <h1>Minions QA VUI Dashboard</h1>
+  <div class="container">
+    <h3>Minions QA VUI Dashboard</h3>
     <label>메인 오디오</label><audio id="audioPlayer" controls></audio><br/>
     <label>효과음</label><audio id="audioPlayer_effect" controls></audio>
+  
+
+    <hr/><br/><br/>
+
+    <label>크롬 내장용</label>
+    <button onclick=start() class="waves-effect waves-light btn" >start</button>
+    <br/><br/>
+    <label>구글 api</label>
+    <button onclick=startRecording() class="waves-effect waves-light btn" >startRecord</button>
+    <button onclick=stopRecording() class="waves-effect waves-light btn" >stopRecording</button>
+    <!-- 위의 버튼에 병합. 레코딩 멈추면 바로 api 호출가능하게-->
+    <!-- <button onclick=blob2base64()>req api -> inquire news</button> -->
+    <button onclick=attachAudio() class="waves-effect waves-light btn" >attach audio</button>
+    <a id="download">download</a>
+    <hr/>
+    <label>Minion says...</label>
+    <div id='result', class='textarea short'>반가워요!!!</div>
+
+    <hr/>
+    <h3>This is for TextRank</h3>
+    <p>먼저 뉴스를 요약한 후에 질문을 넣어주세요. 뉴스 url을 넣거나, 본문 전체를 넣어주면 됩니다. 둘중 하나만 하세요. url입력은 네이버 뉴스만 가능합니다.</p>
+    <label>1-1. url 입력</label><input type="text" id='url'>
+    <br/><label>1-2. 본문으로 입력</label><input type="text" id='doc'> 
+    <button id='summ_news' class="waves-effect waves-light btn" >summarize news</button>
+    <br/><hr/>
+    <label>2. 질문/입력</label><input type="text" id='query'> 
+    <button id='query_news' class="waves-effect waves-light btn" >inquire in news</button>
+    
+    <hr/><br/><br/>
+
+    <label>뉴스 제목</label><div id='news_title' class='textarea short'></div>
+    <label>주요 키워드</label><div id='news_keywords' class='textarea short'></div>
+    <label>질문 답변</label><div id='news_answers' class='textarea'></div>
+    <label>뉴스 요약</label><div id='news_summ' class='textarea'></div>
+    <label>뉴스 본문</label><div id='news_origin' class='textarea'></div>
+    <br/><br/>
+    <div id='loader' style="display: none"></div>
+    <!-- <iframe id='iframe' src='http://news.naver.com'></iframe>   -->
+
   </div>
-
-  <hr/>
-  <label>크롬 내장용</label>
-  <button onclick=start()>start</button>
-  <br/>
-  <label>구글 api</label>
-  <button onclick=startRecording()>startRecord</button>
-  <button onclick=stopRecording()>stopRecording</button>
-  <!-- 위의 버튼에 병합. 레코딩 멈추면 바로 api 호출가능하게-->
-  <!-- <button onclick=blob2base64()>req api -> inquire news</button> -->
-  <button onclick=attachAudio()>attach audio</button>
-  <a id="download">download</a>
-  <hr/>
-  <label>Minion says...</label>
-  <div id='result', class='textarea short'>반가워요!!!</div>
-
-  <hr/>
-  <h1>This is for TextRank</h1>
-  <p>먼저 뉴스를 요약한 후에 질문을 넣어주세요. 뉴스 url을 넣거나, 본문 전체를 넣어주면 됩니다. 둘중 하나만 하세요. url입력은 네이버 뉴스만 가능합니다.</p>
-  <label>1. url 입력</label><input type="text" id='url'>
-  <br/><label>본문으로 입력</label><input type="text" id='doc'>
-  <button id='summ_news'>summarize news</button>
-  <br/><hr/>
-  <label>2. 질문/입력</label><input type="text" id='query'>
-  <button id='query_news'>inquire in news</button>
-  <br/><hr/>
-  <label>뉴스 제목</label><div id='news_title' class='textarea short'></div>
-  <label>주요 키워드</label><div id='news_keywords' class='textarea short'></div>
-  <label>질문 답변</label><div id='news_answers' class='textarea'></div>
-  <label>뉴스 요약</label><div id='news_summ' class='textarea'></div>
-  <label>뉴스 본문</label><div id='news_origin' class='textarea'></div>
-  <br/><hr/>
-  <div id='loader' style="display: none"></div>
-  <!-- <iframe id='iframe' src='http://news.naver.com'></iframe>   -->
 
   <script src="https://webrtc.github.io/adapter/adapter-latest.js"></script>
   <script src="js/common.js"></script>
@@ -73,6 +84,6 @@
   <script src="js/textRank.js"></script>
   <script src="js/chromeSpeech.js"></script>
 
-
+  <script src="//cdnjs.cloudflare.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
 </body>
 </html>

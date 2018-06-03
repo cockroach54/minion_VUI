@@ -1,17 +1,17 @@
-h1{
+h3{
   color: #333;
 }
 
 .textarea{
-  height: 10rem;
-  border: 1px solid crimson;
+  height: 15rem;
+  border: 1px solid #e040fb;
   overflow-y: scroll;
   white-space: pre-wrap;
 }
 
 .short{
   height: 3rem;
-  border: 1px solid blueviolet;  
+  border: 1px solid #4a148c;  
 }
 
 label{
@@ -48,8 +48,21 @@ iframe{
   height: 20%;
   z-index: 999;
   /* ../ 없으면 css/img/loader.gif로 들어가네?? */
-  background-image: url("../img/loader.gif");
+  background-image: url("../img/loader2.gif");
   background-size: contain;
   background-repeat: no-repeat;
   background-position: center;
 }
+
+.minion{
+  color: #fbc02d;
+  font-weight: bold;
+}
+
+::-webkit-scrollbar { 
+  /* display: none;  */
+  width: 8px; 
+}
+::-webkit-scrollbar-button:start:decrement, ::-webkit-scrollbar-button:end:increment {display: none;}
+::-webkit-scrollbar-track {display: none; }
+::-webkit-scrollbar-thumb {background: #eee; -webkit-border-radius: 8px; border-radius: 8px; }
