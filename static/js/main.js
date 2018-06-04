@@ -22,9 +22,18 @@ var constraints = window.constraints = {
 };
 
 // audio, controller 연동
-audio.addEventListener('pause', () => controller.paused = true);
+audio.addEventListener('pause', () => {
+  controller.paused = true;
+  audio_sub.src = 'audio/stop.mp3';
+  audio_sub.play();
+});
 audio.addEventListener('ended', () => controller.paused = true);
 audio.addEventListener('play', () => controller.paused = false);
+audio.addEventListener('error', () => {
+  console.log('req ".m4a" error. change src and request again.');
+  audio.src = audio.src.replace('.mp3', '.temp.m4a');
+  audio.play();
+});
 
 function handleSuccess(stream) {
   var audioTracks = stream.getAudioTracks();
@@ -105,7 +114,7 @@ function blob2base64() {
 // 이 이벤트가 api 호출하는 직접 부분
 reader.onloadend = function() {
   base64data = reader.result;                
-  console.log(base64data, typeof base64data);
+  // console.log(base64data, typeof base64data);
   base64data = base64data.replace(/data:audio\/webm;base64,/, '');
 
   loader.style.display = 'initial'; // show the loader icon 

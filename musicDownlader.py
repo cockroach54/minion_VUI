@@ -2,6 +2,7 @@ from pytube import YouTube
 import requests
 import json
 import re
+import subprocess
 
 # youube data api v3
 def get_youtube_search(query):
@@ -71,6 +72,17 @@ def download_audio(video_id):
                 if not r: return 'Sorry, no audio stream'
             
     r.download('./static/audio')
-    reg = re.compile('[\/:*?"<>|,.]') # 저장시에 파일이름에 못들어가는 특수문자 보정 
+    reg = re.compile('[\/:*?"<>|,.\'"]') # 저장시에 파일이름에 못들어가는 특수문자 보정 
     title = reg.sub('', yt.title)
     return title+'.webm'
+
+# use youtube-dl
+# subprocess로 작동하나 이게 훨씬 빠름
+def download_audio_sub_process(video_id, file_name, ext='mp3'):
+    assert type(video_id) is str and type(file_name) is str
+    assert file_name.find(' ')==-1, 'file_name should have no spacebar(" ")'
+
+    command = 'youtube-dl https://www.youtube.com/watch?v={} -x --audio-format {} --output ./static/audio/{}.%(ext)s'.format(video_id, ext, file_name)
+    print(command)
+    subprocess.call(command, shell=True)
+    return file_name+'.'+ext
