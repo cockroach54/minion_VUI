@@ -14,9 +14,7 @@ var finalTranscript = '';
 recognition.continuous = true;
 recognition.interimResults = true;
 
-var resNode = document.getElementById('result'); 
 function start(event) {
-    resNode.innerHTML = 'started';
     if (isRecognizing) {
       recognition.stop();
       return;
@@ -68,7 +66,6 @@ recognition.onstart = function() {
     }
 
     finalTranscript = capitalize(finalTranscript);
-    resNode.innerHTML = interimTranscript    
     console.log('finalTranscript', finalTranscript);
     console.log('interimTranscript', interimTranscript);
   };

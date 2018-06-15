@@ -1,4 +1,4 @@
-h3{
+h4{
   color: #333;
 }
 
@@ -30,12 +30,7 @@ iframe{
   font-weight: bold;
 }
 
-#url, #query{
-  width: 80%;
-}
-
 #doc{
-  width: 80%;
   height: 3rem;
   overflow-y: scroll;
 }
@@ -57,6 +52,12 @@ iframe{
 .minion{
   color: #fbc02d;
   font-weight: bold;
+}
+
+#rec{
+  color: transparent;
+  font-weight: bold;
+  transition: color 0.5s;
 }
 
 ::-webkit-scrollbar { 

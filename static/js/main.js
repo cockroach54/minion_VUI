@@ -8,6 +8,85 @@
 
 'use strict';
 
+var audioInputSelect = document.querySelector('select#audioSource');
+var audioOutputSelect = document.querySelector('select#audioOutput');
+var selectors = [audioInputSelect, audioOutputSelect];
+
+audioInputSelect.onchange = start;
+audioOutputSelect.onchange = changeAudioDestination;
+
+function changeAudioDestination() {
+  var audioDestination = audioOutputSelect.value;
+  console.log('auidioDes', audioDestination);
+  // attachSinkId('videoElement', audioDestination);
+}
+
+function gotStream(stream) {
+  window.stream = stream; // make stream available to console
+  // videoElement.srcObject = stream;
+  // Refresh button list in case labels have become available
+  return navigator.mediaDevices.enumerateDevices();
+}
+
+function gotDevices(deviceInfos) {
+  // Handles being called several times to update labels. Preserve values.
+  var values = selectors.map(function(select) {
+    return select.value;
+  });
+  selectors.forEach(function(select) {
+    while (select.firstChild) {
+      select.removeChild(select.firstChild);
+    }
+  });
+  for (var i = 0; i !== deviceInfos.length; ++i) {
+    var deviceInfo = deviceInfos[i];
+    var option = document.createElement('option');
+    option.value = deviceInfo.deviceId;
+    // console.log('d_id', deviceInfo);
+    if (deviceInfo.kind === 'audioinput') {
+      option.innerText = deviceInfo.label ||
+          'microphone ' + (audioInputSelect.length + 1);
+      audioInputSelect.appendChild(option);
+    } else if (deviceInfo.kind === 'audiooutput') {
+      option.innerText = deviceInfo.label || 'speaker ' +
+          (audioOutputSelect.length + 1);
+      audioOutputSelect.appendChild(option);
+    } else {
+      console.log('Some other kind of source/device: ', deviceInfo);
+    }
+  }
+  selectors.forEach(function(select, selectorIndex) {
+    if (Array.prototype.slice.call(select.childNodes).some(function(n) {
+      return n.value === values[selectorIndex];
+    })) {
+      select.value = values[selectorIndex];
+    }
+  });
+}
+
+navigator.mediaDevices.enumerateDevices().then(gotDevices).catch(handleError);
+
+
+function start() {
+  if (window.stream) {
+    window.stream.getTracks().forEach(function(track) {
+      track.stop();
+    });
+  }
+  var audioSource = audioInputSelect.value;
+  // var videoSource = videoSelect.value;
+  var constraints = {
+    audio: {deviceId: audioSource ? {exact: audioSource} : undefined},
+    video: false,
+    // video: {deviceId: videoSource ? {exact: videoSource} : undefined}
+  };
+  navigator.mediaDevices.getUserMedia(constraints).
+      then(handleSuccess).then(gotDevices).catch(handleError);
+}
+
+start();
+//--------------위는 블루투스 스피커 연결용 코드---------------
+
 // Put variables in global scope to make them available to the browser console.
 var audio = document.getElementById('audioPlayer');
 var audio_sub = document.getElementById('audioPlayer_effect');
@@ -31,8 +110,24 @@ audio.addEventListener('ended', () => controller.paused = true);
 audio.addEventListener('play', () => controller.paused = false);
 audio.addEventListener('error', () => {
   console.log('req ".m4a" error. change src and request again.');
-  audio.src = audio.src.replace('.mp3', '.temp.m4a');
-  audio.play();
+  controller.say('노래를 불러오는 중 오류가 발생했어요. 다른 노래를 검색해 주세요.');
+  // audio.src = audio.src.replace(/\.\w*$/, '.temp.m4a'); // .mp3, .opus -> .temp.m4a
+  // audio.play();
+});
+// 텍스트로 직접 입력해서 명령하기
+document.getElementById('interpret').addEventListener('click', function(){
+  var order = document.getElementById('order');
+  var text = order.value;
+  controller.interpret(text.trim());
+  order.value = '';
+})
+// enter keyup binding
+document.getElementById('order').addEventListener('keyup', function(e){
+  if(e.keyCode == 13){
+    var mouseEvent = document.createEvent("MouseEvents");
+    mouseEvent.initEvent("click", false, true);
+    document.getElementById('interpret').dispatchEvent(mouseEvent);
+  }
 });
 
 function handleSuccess(stream) {
@@ -47,14 +142,15 @@ function handleSuccess(stream) {
   };
   window.stream = stream; // make variable available to browser console
   audio.srcObject = stream;
+  return navigator.mediaDevices.enumerateDevices();
 }
 
 function handleError(error) {
   console.log('navigator.getUserMedia error: ', error);
 }
 
-navigator.mediaDevices.getUserMedia(constraints).
-    then(handleSuccess).catch(handleError);
+// navigator.mediaDevices.getUserMedia(constraints).
+//     then(handleSuccess).catch(handleError);
 
   
 // ---------------sw
@@ -73,6 +169,10 @@ function startRecording() {
   //   console.log('######', options.mimeType + ' is not Supported');
   //   options = {mimeType: 'audio/webm'};
   // }
+  // 레코딩 시작 시청각적으로 알리기
+  document.getElementById('rec').style.color = 'red';
+  audio_sub.src= 'audio/stop.mp3'
+  audio_sub.play();
 
   try {
     mediaRecorder = new MediaRecorder(window.stream);
@@ -94,6 +194,7 @@ function handleDataAvailable(event) {
 }
 
 function handleStop(event) {
+  document.getElementById('rec').style.color = 'transparent';  
   console.log('Recorder stopped: ', event);
 }
 
@@ -130,13 +231,14 @@ reader.onloadend = function() {
     document.getElementById('query').value = query
     controller.interpret(query);
     if(loader.style.display=='initial') loader.style.display = 'none'; // show the loader icon     
+  }).catch(()=>{
+    controller.say('말씀을 알아듣지 못했어요. 다시 천천히 말해줄래요?');
   });
 }
 
 
-var audioPlayer = document.getElementById('audioPlayer');
 function attachAudio(){
-  audioPlayer.src = URL.createObjectURL(new Blob(recordedBlobs, { type : 'audio/webm'}));
+  audio_sub.src = URL.createObjectURL(new Blob(recordedBlobs, { type : 'audio/webm'}));
 }
 
 //-----------file download
@@ -288,3 +390,9 @@ function tts(text){
      
   });
 }
+
+// // for material css dropdown
+// document.addEventListener('DOMContentLoaded', function() {
+//   var elems = document.querySelectorAll('.dropdown-trigger');
+//   var instances = M.Dropdown.init(elems);
+// });

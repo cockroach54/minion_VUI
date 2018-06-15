@@ -4,12 +4,12 @@ var news;
 // 뉴스 요약하기 이벤트
 var summ_news = document.getElementById('summ_news');
 summ_news.addEventListener('click', function () {
-  var url = document.getElementById('url').value;
+  var url = document.getElementById('url').value || controller.newsUrl;
   console.log(url);
   // iframe 변경
   // document.getElementById('iframe').setAttribute('src', url);
   // news 요청
-  reqNews(url).then(res => {
+  reqSummary(url).then(res => {
     console.log(res);
     news = res;
 
@@ -21,15 +21,22 @@ summ_news.addEventListener('click', function () {
     
     // keywords css 입히기
     for (k of news['keywords']) findKeyword(k);
-    controller.say("이 뉴스의 키워드는 '" + news['keywords'].join(', ') + "' 입니다."); // 미니언 토스트
+    
+    controller.newsSummary = document.getElementById('news_summ').innerText;
+    controller.newsKeyword = news['keywords'].join(', ');
+
+    controller.say(controller.newsSummary); // 뉴스요약 말하기
+    // controller.say("이 뉴스의 키워드는 '" + news['keywords'].join(', ') + "' 입니다."); // 미니언 토스트
+  }).catch(()=>{
+    controller.say('죄송해요. 뉴스를 요약하는데 실패했어요');
   });
 });
 // enter keyup binding
 document.getElementById('url').addEventListener('keyup', function(e){
   if(e.keyCode == 13){
     var mouseEvent = document.createEvent("MouseEvents");
-        mouseEvent.initEvent("click", false, true);
-        summ_news.dispatchEvent(mouseEvent);
+    mouseEvent.initEvent("click", false, true);
+    summ_news.dispatchEvent(mouseEvent);
   }
 });
 
@@ -50,8 +57,8 @@ query_news.addEventListener('click', function(){
 document.getElementById('query').addEventListener('keyup', function(e){
   if(e.keyCode == 13){
     var mouseEvent = document.createEvent("MouseEvents");
-        mouseEvent.initEvent("click", false, true);
-        query_news.dispatchEvent(mouseEvent);
+    mouseEvent.initEvent("click", false, true);
+    query_news.dispatchEvent(mouseEvent);
   }
 });
 
@@ -78,13 +85,48 @@ function findKeyword(keyword){
 }
 
 //-----------------------------api request
-
-function reqNews(news_url) {
+function reqNews(query) {
   var httpRequest;
   if (window.XMLHttpRequest) httpRequest = new XMLHttpRequest();
   else if (window.ActiveXObject) httpRequest = new ActiveXObject("Microsoft.XMLHTTP");
   var url = window.location.origin;
   url += '/news';
+  var headers = {  //key 요구가 없네...
+    // 'Content-Type': 'application/json'
+  };
+  var payloads = {
+    'query': query,
+  }
+  
+  return new Promise((resolve, reject) => {
+    httpRequest.open('POST', url, true);
+    for (key in headers){
+        httpRequest.setRequestHeader(key, headers[key]);            
+      }
+    httpRequest.send(JSON.stringify(payloads));
+
+    httpRequest.onreadystatechange = function () {
+      if (httpRequest.readyState == 4) {
+        if (httpRequest.status == 200) { //이건 클라이언트꺼 서버것 아님
+          var res = httpRequest.responseText;
+          var res = JSON.parse(res);
+          resolve(res);
+        }
+        else {
+          console.error('server has errors.');
+          reject();
+        }
+      }
+    };
+  });
+}
+
+function reqSummary(news_url) {
+  var httpRequest;
+  if (window.XMLHttpRequest) httpRequest = new XMLHttpRequest();
+  else if (window.ActiveXObject) httpRequest = new ActiveXObject("Microsoft.XMLHTTP");
+  var url = window.location.origin;
+  url += '/summary';
   var headers = {  //key 요구가 없네...
     // 'Content-Type': 'application/json'
   };
@@ -122,6 +164,42 @@ function reqAns(query) {
   else if (window.ActiveXObject) httpRequest = new ActiveXObject("Microsoft.XMLHTTP");
   var url = window.location.origin;
   url += '/query';
+  var headers = {  //key 요구가 없네...
+    // 'Accept': 'application/json'
+  };
+  var payloads = {
+    'query': query,
+  }
+  
+  return new Promise((resolve, reject) => {
+    httpRequest.open('POST', url, true);
+    for (key in headers){
+        httpRequest.setRequestHeader(key, headers[key]);            
+      }
+    httpRequest.send(JSON.stringify(payloads));
+
+    httpRequest.onreadystatechange = function () {
+      if (httpRequest.readyState == 4) {
+        if (httpRequest.status == 200) { //이건 클라이언트꺼 서버것 아님
+          var res = httpRequest.responseText;
+          var res = JSON.parse(res);
+          resolve(res);
+        }
+        else {
+          console.error('server has errors.');
+          reject();
+        }
+      }
+    };
+  });
+}
+
+function reqAnsNER(query) {
+  var httpRequest;
+  if (window.XMLHttpRequest) httpRequest = new XMLHttpRequest();
+  else if (window.ActiveXObject) httpRequest = new ActiveXObject("Microsoft.XMLHTTP");
+  var url = window.location.origin;
+  url += '/api/ner';
   var headers = {  //key 요구가 없네...
     // 'Accept': 'application/json'
   };

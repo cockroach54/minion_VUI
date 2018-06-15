@@ -6,14 +6,18 @@ from flask import Flask, request, session, g, redirect, url_for, \
 from flask_cors import CORS, cross_origin # http://flask-cors.readthedocs.io/en/latest/
 # from flaskext.mysql import MySQL
 
+# for NER tensorflow model
+from NER_model import *
+
+# for 3rd party api
 from speech_recog import *
 from speech_syn import *
 from musicDownlader import *
 
 from myTextRank import *
-import asyncio
-import jpype
-p = textRank()
+import operator, asyncio, jpype
+p = textRank() # 네이버 뉴스용
+p2 = textRank() # 나무위키용 // 네이버랑 저장하는 도큐먼트가 다르므로 따로 만들어여함
 
 app = Flask(__name__, static_url_path='',
             static_folder='static',)
@@ -71,7 +75,7 @@ def music():
         for v in vids:
             if compare_duration(v):
                 # music_file = download_audio(v)
-                music_file = download_audio_sub_process(v, music)
+                music_file = download_audio_sub_process(v, music, ext='mp3')
                 break
         # 음악 길이 적당한거 못찾았을 때  
         if not music_file:
@@ -98,14 +102,28 @@ def synthesis():
     return json.dumps(res)
 
 
-    
-
-
 # ---------------------------------for textRank
-
-# 뉴스주소 받기
+# 뉴스주소 받아서 네이버 뉴스 찾기
 @app.route("/news", methods=['POST'])
 def news():
+    if type(request.data) is bytes: body = json.loads(request.data.decode())
+    else: body = json.loads(request.data)
+    print(body)
+    query = body['query']
+    res = p.search_naver_news(query)
+    p.url = res['link']
+
+    # 나무위키도 이때 찾기
+    n_doc = p2.nwiki(query.split()[0]) #무조건 첫단어만 검색
+    if n_doc: 
+        print('해당 나무위키 문서를 찾았습니다.')
+        p2.article_parsed = n_doc
+
+    return json.dumps(res)
+
+# 뉴스 요약하기
+@app.route("/summary", methods=['POST'])
+def summary():
   # 다른 스레드 사용시엔 반드시 필요
     jpype.attachThreadToJVM()
     
@@ -122,18 +140,21 @@ def news():
       p.article_parsed = news_doc.split('. ')
       p.title = 'have no title'
     else:
-      # # 비동기로 불러오기
-      # # loop = asyncio.get_event_loop()
-      # # loop.run_until_complete(p.getNews(news_url))
-      # # 주피터에서 사용
       # article = p.getNews(news_url)
       article = requests.get(news_url)
       p.parse(article)
+    # article = requests.get(p.url)
+    # p.parse(article)
     # textrank
     p.setGraph()
     p.getSummary()
     news_summ = p.getSummary(num_summ=3)
     keywords = p.getKeyword(5)
+
+    # 나무위키 도큐먼트 찾은 경우만
+    if p2.article_parsed:
+        p2.setGraph()
+        p2.getSummary()
 
     return json.dumps({
         'url': news_url,
@@ -154,19 +175,67 @@ def query():
     else: body = json.loads(request.data)
     print(body)
     query = body['query']
+
+    # KB에서 제일 먼저 검색
+    # 적당한 답이 없으면 뉴스와 위키에서 검색
+    ext = predict(sess, query)
+    print(ext)
+
+    answers = get_answer(ext)
+    print(answers)
+
+    if answers:
+        res = {
+            'answers': [answers],
+        }
+        return json.dumps(res)
+
     # 뉴스요약 먼저 하고 질문해야함
+    # 뉴스 내 답변 검색
+    res_ = []
+    for i,e in enumerate(p.getAnswer(query)):
+        res_.append(('뉴스에서 발췌한 답변입니다. '+e[0], e[1]))
+
+    # 나무위키 내 답변 겁색
+    # 나무위키 도큐먼트 찾은 경우만
+    if p2.article_parsed:
+        for i,e in enumerate(p2.getAnswer(query)):
+            res_.append(('위키에서 발췌한 답변입니다. '+e[0], e[1]))
+
+    res_.sort(key=lambda a:float(a[1]), reverse=True)
+
+    # 최종 리턴
+    print(res_[:5])
     try:
       res = {
-        'answers': p.getAnswer(query)
+        'answers': res_
       }
     except:
       res = {
         'answers': ['get news first!!']
       }
+    
 
     return json.dumps(res)
 
-    
+# -------------------------for NER query
+@app.route("/api/ner", methods=['POST'])
+def ner():
+    if type(request.data) is bytes: body = json.loads(request.data.decode())
+    else: body = json.loads(request.data)
+    query = body['query']
+
+    ext = predict(sess, query)
+    print(ext)
+
+    answers = get_answer(ext)
+    print(answers)
+
+    res = {
+        'answers': [answers],
+    }
+    return json.dumps(res)
+
 # ---------------------------------- 아래는 그냥 참고용임
 @app.route("/contents")
 @app.route("/contents/<style>")
@@ -178,7 +247,7 @@ def contents_style(style=None, game=None, gameKind=None):
 
 if __name__ == '__main__':
     context = ('ssl/cert.pem', 'ssl/key.pem') # for https ssl
-    app.run(debug=True, host='0.0.0.0', port=5000, ssl_context=context) # 이건 내부, 외부 한번에
+    app.run(debug=True, host='0.0.0.0', port=8000, ssl_context=context) # 이건 내부, 외부 한번에
     # app.run(debug=True, host='10.0.1.21', port=8000)
     # app.run(debug=True, host='127.0.0.1', port=8000)
     # app.run(debug=True)

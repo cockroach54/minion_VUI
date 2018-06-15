@@ -3,6 +3,7 @@ import requests
 import json
 import re
 import subprocess
+import os
 
 # youube data api v3
 def get_youtube_search(query):
@@ -39,8 +40,10 @@ def compare_duration(vid):
         return False # 1시간 이상은 무조건 자름
     except: pass
     dur_ = dur[2:]
-    m = int(dur_[:dur_.index('M')])
-    s = int(dur_[dur_.index('M')+1:dur_.index('S')])
+    if dur_.find('M')>-1: m = int(dur_[:dur_.index('M')])
+    else: m=0
+    if dur_.find('S')>-1: s = int(dur_[dur_.index('M')+1:dur_.index('S')])
+    else: s=0
     dur = m*60 + s
     print('vid:', vid, ', duration:', dur)
     
@@ -82,7 +85,20 @@ def download_audio_sub_process(video_id, file_name, ext='mp3'):
     assert type(video_id) is str and type(file_name) is str
     assert file_name.find(' ')==-1, 'file_name should have no spacebar(" ")'
 
-    command = 'youtube-dl https://www.youtube.com/watch?v={} -x --audio-format {} --output ./static/audio/{}.%(ext)s'.format(video_id, ext, file_name)
+    # opus, m4a 그대로 받기, 속도 빠름
+    command = 'youtube-dl https://www.youtube.com/watch?v={} -x --output ./static/audio/{}.%(ext)s'.format(video_id, file_name)
+    # mp3로 변환후 받기, 속도 느림
+    # command = 'youtube-dl https://www.youtube.com/watch?v={} -x --audio-format {} --output ./static/audio/{}.%(ext)s'.format(video_id, ext, file_name)
     print(command)
     subprocess.call(command, shell=True)
-    return file_name+'.'+ext
+
+    # 다운받은 ext를 리턴
+    ext_down = ''
+    for path, dirs, files in os.walk('./'):
+        for file in files:
+            if os.path.splitext(file)[0] == file_name:
+                ext_down = os.path.splitext(file)[1]
+                break
+    print('downloaded_music_file:', file_name + ext_down)
+    if ext_down=='': return file_name+'.temp.m4a'
+    return file_name + ext_down
