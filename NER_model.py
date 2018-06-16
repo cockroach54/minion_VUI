@@ -334,7 +334,7 @@ def get_answer(ext):
         reg = re.compile('\(.*\)') # 괄호 없애기
         objs = [reg.sub('', i).strip() for i in obj_candi]
         objs = ', '.join(objs)
-        answer = '{}의 {}(은)는 {}입니다.'.format(ext['subj'], ext['pred'], objs)
+        answer = '지식베이스에서 발췌한 답변입니다. {}의 {}(은)는 {}입니다.'.format(ext['subj'], ext['pred'], objs)
         answers.append(replace_josa(answer))
     
     return answers
