@@ -4,8 +4,8 @@ import sys
 import urllib.request
 
 def text2speech(text):
-  client_id = "클로바 개인 계정"
-  client_secret = "클로바 개인 계정"
+  client_id = "kwjiwaqr0b"
+  client_secret = "PU5Ewecvdnch7gUHg6x38zILYXkjvPssCGOVwJuz"
 
   data = "speaker=mijin&speed=0&text=" + text
   url = "https://naveropenapi.apigw.ntruss.com/voice/v1/tts"
